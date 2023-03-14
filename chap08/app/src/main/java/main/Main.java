@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import config.AppCtx;
@@ -17,20 +16,14 @@ import spring.MemberRegisterService;
 import spring.RegisterRequest;
 import spring.WrongIdPasswordException;
 
-public class MainForSpring {
-    
-    private static ApplicationContext ctx = null;
-
-    /**
-     * @param args
-     * @throws IOException
-     */
+public class Main {
+    private static AnnotationConfigApplicationContext ctx = null;
     public static void main(String[] args) throws IOException {
         ctx = new AnnotationConfigApplicationContext(AppCtx.class);
 
         BufferedReader reader = 
             new BufferedReader(new InputStreamReader(System.in));
-        while(true) {   //MainForAssembler의 메소드와 같음
+        while(true) {
             System.out.println("명령어를 입력하세요:");
             String command = reader.readLine();
             if(command.equalsIgnoreCase("exit")) {
@@ -39,25 +32,20 @@ public class MainForSpring {
             }
             if(command.startsWith("new ")) {
                 processNewCommand(command.split(" "));
-                continue;
             } else if(command.startsWith("change ")) {
                 processChangeCommand(command.split(" "));
-                continue;
             } else if(command.equals("list")) {
                 processListCommand();
-                continue;
             } else if(command.startsWith("info ")) {
                 processInfoCommand(command.split(" "));
-                continue;
+            } else {
+                printHelp();
             }
-            printHelp();
         }
+
+        ctx.close();
     }
 
-    /**
-     * @param arg 새 회원 정보
-     * @return no return
-     */
     private static void processNewCommand(String[] arg) {
         if(arg.length != 5) {
             printHelp();
@@ -72,20 +60,18 @@ public class MainForSpring {
         req.setConfirmPassword(arg[4]);
 
         if(!req.isPasswordEqualToConfirmPassword()) {
-            System.out.println("암호와 확인이 일치하지 않습니다\n");
+            System.out.println("암호와 확인이 일치하지 않습니다.\n");
             return;
         }
         try {
             regSvc.regist(req);
             System.out.println("등록했습니다.\n");
         } catch (DuplicateMemberException e) {
+            // TODO: handle exception
             System.out.println("이미 존재하는 이메일입니다.\n");
         }
     }
 
-    /**
-     * @param arg 변경할 회원 정보
-     */
     private static void processChangeCommand(String[] arg) {
         if(arg.length != 4) {
             printHelp();
@@ -132,5 +118,4 @@ public class MainForSpring {
             ctx.getBean("infoPrinter", MemberInfoPrinter.class);
         infoPrinter.printMemberInfo(arg[1]);
     }
-
 }
